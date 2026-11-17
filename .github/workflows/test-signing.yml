@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Create synthetic technical manifest
         run: |
-          printf '%s\n' '{"application":"gallery-updater-synthetic-test","sequence":1,"test_only":true,"schema":1}' > manifest-test.json
+          printf '%s\n' '{"application":"gallery-updater-synthetic-test","sequence":2,"test_only":true,"schema":1,"zip_bytes":9437515,"zip_sha256":"bac53aa5da6d11f432674b1f18ff5d90a7c24760b66fcbcf644699171b057d93"}' > manifest-test.json
       - name: Sign and verify synthetic manifest
         uses: sigstore/gh-action-sigstore-python@5b79a39c381910c090341a2c9b0bf022c8b387e1
         with:
