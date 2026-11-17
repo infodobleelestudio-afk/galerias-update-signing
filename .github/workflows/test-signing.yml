@@ -1,0 +1,25 @@
+name: Synthetic signing test
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  sign-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Create synthetic technical manifest
+        run: |
+          printf '%s\n' '{"application":"gallery-updater-synthetic-test","sequence":1,"test_only":true,"schema":1}' > manifest-test.json
+      - name: Sign and verify synthetic manifest
+        uses: sigstore/gh-action-sigstore-python@5b79a39c381910c090341a2c9b0bf022c8b387e1
+        with:
+          inputs: manifest-test.json
+          verify: true
+          verify-cert-identity: https://github.com/infodobleelestudio-afk/galerias-update-signing/.github/workflows/test-signing.yml@refs/heads/main
+          verify-oidc-issuer: https://token.actions.githubusercontent.com
+          release-signing-artifacts: false
+          upload-signing-artifacts: true
