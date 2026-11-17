@@ -1,0 +1,38 @@
+name: Synthetic permissions one-time test
+on:
+  workflow_dispatch:
+permissions: {}
+concurrency:
+  group: synthetic-permissions-once
+  cancel-in-progress: false
+jobs:
+  permissions-lab:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Read approved synthetic source and check integrity
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --max-time 60 --proto '=https' --tlsv1.2 'https://github.com/infodobleelestudio-afk/galerias-update-signing/raw/33cf094337fabad5ed4e43769572c985c9b6a81d/1-permission-lab-synthetic-source.zip' -o lab.zip
+          echo 'd4dc7e89f230a6eec108e7453c6e7b5e9b7876f255c19777e2fe80037897af9b  lab.zip' | sha256sum --check --strict
+          python3 - <<'PY'
+          import pathlib,zipfile
+          root=pathlib.Path('lab');root.mkdir()
+          expected={'permission_lab.py','permission_probe.py','fixed_protocol.py','process_harness.py','stage_verified.py','verify_release.py','mount_preflight.py','SHA256SUMS'}
+          with zipfile.ZipFile('lab.zip') as z:
+              assert set(z.namelist())==expected
+              assert len(z.namelist())==len(expected)
+              z.extractall(root)
+          PY
+          cd lab
+          sha256sum --check --strict SHA256SUMS
+      - name: Run once on disposable Linux without secrets or production access
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd lab
+          python3 -B permission_lab.py --run-synthetic-docker | tee ../result.json
+          printf '### Synthetic permissions lab\n\nLinux/Docker test only. Does not certify any production host.\n\n```json\n' >> "$GITHUB_STEP_SUMMARY"
+          cat ../result.json >> "$GITHUB_STEP_SUMMARY"
+          printf '\n```\n' >> "$GITHUB_STEP_SUMMARY"
